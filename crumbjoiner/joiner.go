@@ -10,10 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"github.com/cheggaaa/pb/v3"
-)
-
-const (
-	chuck   = 1024 * 1024 * 1
+	"sort"
 )
 
 type Crumb struct {
@@ -72,24 +69,11 @@ func Joiner(dirname string) {
 	fmt.Println("Joining the files")
 	count = len(files)
 	bar = pb.StartNew(count)
-	lenofcrumbs := len(crumbs)
 	filename = crumbs[0].name
-	for i := 0; i < lenofcrumbs; i++ {
-		for j := 0; ; j++ {
-			if crumbs[j].index == i {
-				if crumbs[j].index == lenofcrumbs-1 {
-					//Appending base64 of files to fullfile
-					//fullfile += crumbs[j].content
-					fullfile.WriteString(crumbs[j].content)
-					bar.Increment()
-				} else {
-					//fullfile += crumbs[j].content
-					fullfile.WriteString(crumbs[j].content)
-					bar.Increment()
-				}
-				break
-			}
-		}
+	sort.Slice(crumbs,func(i, j int) bool { return crumbs[i].index < crumbs[j].index })
+	for _,crumb := range crumbs {
+		fullfile.WriteString(crumb.content)
+		bar.Increment()
 	}
 	bar.Finish()
 	fmt.Println("Decoding from base64.....")

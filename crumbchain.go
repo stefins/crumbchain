@@ -20,7 +20,7 @@ func main()  {
   }
   if (*join == ""){
   }else{
-    //crumbjoiner.Integrity(*join)
+    crumbjoiner.Integrity(*join)
     crumbjoiner.Joiner(*join)
     return
   }

@@ -71,14 +71,14 @@ func Crumber(name string,size int) {
 	for i := 0; ; i++ {
 
 		if i < len(encoded)/chuck {
-			h := sha256.New()
-			h.Write([]byte(encoded[i*chuck : (i+1)*chuck]))
 			loc := new(Crumb)
 			if i==0 {
 				loc.prev_hash = "0000000"
 			}else{
 				loc.prev_hash = cmb[i-1].hash
 			}
+			h := sha256.New()
+			h.Write([]byte(encoded[i*chuck : (i+1)*chuck]))
 			h.Write([]byte(loc.prev_hash))
 			loc.index = i
 			loc.name = name
@@ -87,14 +87,14 @@ func Crumber(name string,size int) {
 			cmb = append(cmb, loc)
 			bar.Increment()
 		} else {
-			h := sha256.New()
-			h.Write([]byte(encoded[i*chuck:]))
 			loc := new(Crumb)
 			if i==0 {
 				loc.prev_hash = "0000000"
 			}else{
 				loc.prev_hash = cmb[i-1].hash
 			}
+			h := sha256.New()
+			h.Write([]byte(encoded[i*chuck:]))
 			h.Write([]byte(loc.prev_hash))
 			loc.index = i
 			loc.name = name
