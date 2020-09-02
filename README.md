@@ -9,6 +9,10 @@ A File Crumbing CLI Written in Go
 
 # Installation
 
+Download the binary from releases or run `go get -u github.com/iamstefin/crumbchain`
+
+# Usage
+
 ```console
 $ crumbchain -help
 Usage of crumbchain:
