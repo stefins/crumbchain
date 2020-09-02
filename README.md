@@ -1,6 +1,9 @@
-<img src="static/gopher.png" width="100%">
-
-# CrumbChain
+<h1 align="center">
+  <a href="https://github.com/iamstefin/crumbchain"><img src="/static/gopher.png" alt="CrumbChain" height="250px"></a>
+  <br>
+  CrumbChain
+  <br>
+</h1>
 
 A File Crumbing CLI Written in Go
 
