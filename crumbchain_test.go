@@ -14,7 +14,7 @@ var hash = new(string);
 var new_hash = new(string);
 
 func TestCrumb(t *testing.T)  {
-  makefile("test_file",2000)
+  makefile("test_file",500)
   crumb.Crumber("test_file",10)
   *hash = calchash("test_file")
   err := os.Remove("test_file")
