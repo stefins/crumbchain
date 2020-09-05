@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/francoispqt/gojay"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,31 +12,8 @@ import (
 	"strings"
 	"io"
 	"github.com/cheggaaa/pb/v3"
+	proto "github.com/golang/protobuf/proto"
 )
-
-type Crumb struct {
-	index   int
-	name    string
-	hash    string
-	prev_hash string
-	content string
-}
-
-func (c *Crumb) MarshalJSONObject(enc *gojay.Encoder) {
-	enc.IntKey("index", c.index)
-	enc.StringKey("name", c.name)
-	enc.StringKey("hash", c.hash)
-	enc.StringKey("prev_hash",c.prev_hash)
-	enc.StringKey("content", c.content)
-}
-
-func (c *Crumb) IsNil() bool {
-	return c == nil
-}
-
-func (c *Crumb) info() string {
-	return c.name + c.hash + c.content + "[" + strconv.Itoa(c.index) + "]"
-}
 
 func Crumber(name string,size int) {
 	//To chuck the file into 1 MB
@@ -73,33 +49,33 @@ func Crumber(name string,size int) {
 		if i < len(encoded)/chuck {
 			loc := new(Crumb)
 			if i==0 {
-				loc.prev_hash = "0000000"
+				loc.PrevHash = []byte("0000000")
 			}else{
-				loc.prev_hash = cmb[i-1].hash
+				loc.PrevHash = cmb[i-1].Hash
 			}
 			h := sha256.New()
 			h.Write([]byte(encoded[i*chuck : (i+1)*chuck]))
-			h.Write([]byte(loc.prev_hash))
-			loc.index = i
-			loc.name = name
-			loc.hash = string(h.Sum(nil))
-			loc.content = encoded[i*chuck : (i+1)*chuck]
+			h.Write([]byte(loc.PrevHash))
+			loc.Index = int64(i)
+			loc.Name = name
+			loc.Hash = h.Sum(nil)
+			loc.Content = encoded[i*chuck : (i+1)*chuck]
 			cmb = append(cmb, loc)
 			bar.Increment()
 		} else {
 			loc := new(Crumb)
 			if i==0 {
-				loc.prev_hash = "0000000"
+				loc.PrevHash = []byte("0000000")
 			}else{
-				loc.prev_hash = cmb[i-1].hash
+				loc.PrevHash = cmb[i-1].Hash
 			}
 			h := sha256.New()
 			h.Write([]byte(encoded[i*chuck:]))
-			h.Write([]byte(loc.prev_hash))
-			loc.index = i
-			loc.name = name
-			loc.hash = string(h.Sum(nil))
-			loc.content = encoded[i*chuck:]
+			h.Write([]byte(loc.PrevHash))
+			loc.Index = int64(i)
+			loc.Name = name
+			loc.Hash = h.Sum(nil)
+			loc.Content = encoded[i*chuck:]
 			cmb = append(cmb, loc)
 			bar.Increment()
 			break
@@ -111,8 +87,8 @@ func Crumber(name string,size int) {
 	count = len(cmb)
 	bar = pb.StartNew(count)
 	for i, cont := range cmb {
-		data := &Crumb{cont.index, cont.name, cont.hash,cont.prev_hash,cont.content}
-		b, err := gojay.MarshalJSONObject(data)
+		data := &Crumb{Index:cont.Index, Name:cont.Name, Hash:cont.Hash, PrevHash:cont.PrevHash, Content:cont.Content}
+		b,err := proto.Marshal(data)
 		if err != nil {
 			log.Fatal(err)
 		}
