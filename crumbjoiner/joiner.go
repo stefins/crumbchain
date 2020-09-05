@@ -3,7 +3,6 @@ package crumbjoiner
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/francoispqt/gojay"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,35 +10,8 @@ import (
 	"strings"
 	"github.com/cheggaaa/pb/v3"
 	"sort"
+	proto "github.com/golang/protobuf/proto"
 )
-
-type Crumb struct {
-	index   int
-	name    string
-	hash    string
-	prev_hash string
-	content string
-}
-
-func (u *Crumb) UnmarshalJSONObject(dec *gojay.Decoder, key string) error {
-	switch key {
-	case "index":
-		return dec.Int(&u.index)
-	case "name":
-		return dec.String(&u.name)
-	case "hash":
-		return dec.String(&u.hash)
-	case "prev_hash":
-		return dec.String(&u.prev_hash)
-	case "content":
-		return dec.String(&u.content)
-	}
-	return nil
-}
-
-func (u *Crumb) NKeys() int {
-	return 5
-}
 
 func Joiner(dirname string) {
 	var fullfile strings.Builder
@@ -58,7 +30,7 @@ func Joiner(dirname string) {
 			log.Fatal(err)
 		}
 		c := &Crumb{}
-		err = gojay.UnmarshalJSONObject(content, c)
+		err = proto.Unmarshal(content,c)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,10 +41,10 @@ func Joiner(dirname string) {
 	fmt.Println("Joining the files")
 	count = len(files)
 	bar = pb.StartNew(count)
-	filename = crumbs[0].name
-	sort.Slice(crumbs,func(i, j int) bool { return crumbs[i].index < crumbs[j].index })
+	filename = crumbs[0].Name
+	sort.Slice(crumbs,func(i, j int) bool { return crumbs[i].Index < crumbs[j].Index })
 	for _,crumb := range crumbs {
-		fullfile.WriteString(crumb.content)
+		fullfile.WriteString(crumb.Content)
 		bar.Increment()
 	}
 	bar.Finish()
