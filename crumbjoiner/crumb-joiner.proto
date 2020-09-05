@@ -1,0 +1,13 @@
+syntax="proto3";
+
+package crumbjoiner;
+
+option go_package=".;crumbjoiner";
+
+message Crumb {
+  int64 index = 1;
+  string name = 2;
+  bytes hash = 3;
+  bytes prev_hash = 4;
+  string content = 5;
+}
