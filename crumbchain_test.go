@@ -5,7 +5,6 @@ import (
   "log"
   "os"
   "crypto/sha256"
-  "os/exec"
   "io"
   "github.com/iamstefin/crumbchain/crumb"
   "github.com/iamstefin/crumbchain/crumbjoiner"
@@ -15,20 +14,17 @@ var hash = new(string);
 var new_hash = new(string);
 
 func TestCrumb(t *testing.T)  {
-  cmd := exec.Command("mkfile", "-n","2g","test_file")
-  err := cmd.Run()
-	log.Printf("Command finished with error: %v", err)
+  makefile("test_file",2000)
   crumb.Crumber("test_file",10)
   *hash = calchash("test_file")
+  err := os.Remove("test_file")
+  if err != nil {
+    panic("Error")
+  }
 }
 
 func TestJoin(t *testing.T)  {
-  cmd := exec.Command("rm","-rf","test_file")
-  err := cmd.Run()
-	log.Printf("Command finished with error: %v", err)
   crumbjoiner.Joiner("test_file-crumb")
-  cmd = exec.Command("rm","-rf","test_file-crumb")
-  cmd.Run()
   *new_hash = calchash("test_file")
 
   if *hash == *new_hash {
@@ -36,8 +32,6 @@ func TestJoin(t *testing.T)  {
   }else{
     panic("Eerrr")
   }
-  cmd = exec.Command("rm","-rf","test_file")
-  err = cmd.Run()
 }
 
 func calchash(name string) string {
@@ -53,4 +47,24 @@ func calchash(name string) string {
 	}
 
   return(string(h.Sum(nil)))
+}
+
+func makefile(name string,s int)  {
+  size := int64(s * 1024 * 1024)
+    fd, err := os.Create(name)
+    if err != nil {
+        log.Fatal("Failed to create output")
+    }
+    _, err = fd.Seek(size-1, 0)
+    if err != nil {
+        log.Fatal("Failed to seek")
+    }
+    _, err = fd.Write([]byte{0})
+    if err != nil {
+        log.Fatal("Write failed")
+    }
+    err = fd.Close()
+    if err != nil {
+        log.Fatal("Failed to close file")
+    }
 }
