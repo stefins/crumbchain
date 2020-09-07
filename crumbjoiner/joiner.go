@@ -44,19 +44,25 @@ func Joiner(dirname string) {
 	filename = crumbs[0].Name
 	sort.Slice(crumbs,func(i, j int) bool { return crumbs[i].Index < crumbs[j].Index })
 	for _,crumb := range crumbs {
-		fullfile.WriteString(crumb.Content)
+		//fmt.Println(crumb.Content)
+		tmp,err := base64.StdEncoding.DecodeString(string(crumb.Content))
+		if err != nil {
+			panic(err)
+		}
+		fullfile.WriteString(string(tmp))
 		bar.Increment()
 	}
 	bar.Finish()
 	fmt.Println("Decoding from base64.....")
-	// Converting from base64 to normal
-	data, err := base64.StdEncoding.DecodeString(fullfile.String())
 	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
 	// Writing to the output file
-	err = ioutil.WriteFile(filename, []byte(data), 0644)
+	err = ioutil.WriteFile(filename, []byte(fullfile.String()), 0644)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func FilePathWalkDir(root string) ([]string, error) {
