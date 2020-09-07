@@ -51,7 +51,7 @@ func Joiner(dirname string) {
 	// Converting from base64 to normal
 	// Writing to the output file
 	data, _ := base64.StdEncoding.DecodeString(fullfile.String())
-	_ = ioutil.WriteFile(filename, []byte(data), 0644)
+	_ = ioutil.WriteFile(filename, data, 0644)
 }
 
 func FilePathWalkDir(root string) ([]string, error) {
