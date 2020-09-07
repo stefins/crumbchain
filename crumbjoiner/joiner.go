@@ -1,13 +1,13 @@
 package crumbjoiner
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
-	"encoding/base64"
 	"github.com/cheggaaa/pb/v3"
 	"sort"
 	proto "github.com/golang/protobuf/proto"
@@ -48,10 +48,15 @@ func Joiner(dirname string) {
 		bar.Increment()
 	}
 	bar.Finish()
+	fmt.Println("Decoding from base64.....")
 	// Converting from base64 to normal
+	data, err := base64.StdEncoding.DecodeString(fullfile.String())
+	if err != nil {
+		fmt.Println("error:", err)
+		return
+	}
 	// Writing to the output file
-	data, _ := base64.StdEncoding.DecodeString(fullfile.String())
-	_ = ioutil.WriteFile(filename, data, 0644)
+	err = ioutil.WriteFile(filename, []byte(data), 0644)
 }
 
 func FilePathWalkDir(root string) ([]string, error) {
