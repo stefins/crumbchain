@@ -54,7 +54,7 @@ func Joiner(dirname string) {
 	count = len(files)
 	bar = pb.StartNew(count)
 	filename = crumbs[0].Name
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 644)
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
     panic(err)
 	}
