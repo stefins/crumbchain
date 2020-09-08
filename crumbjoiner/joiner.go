@@ -20,6 +20,7 @@ func Joiner(dirname string) {
 	filename := ""
 	files, err := FilePathWalkDir(dirname)
 	if err != nil {
+		fmt.Println("Some error : ",err.Error())
 		return
 	}
 	crumbs := []Crumb{}
@@ -70,6 +71,7 @@ func Joiner(dirname string) {
 	    panic(err)
 	  }
 		bar.Increment()
+		crumb = Crumb{}
 	}
 	bar.Finish()
 }
