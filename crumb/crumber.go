@@ -11,13 +11,19 @@ import (
 	"encoding/base64"
 	"io"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/golang/protobuf/proto"
 )
 
 func Crumber(name string,size int) {
-	//To chuck the file into 1 MB
+	// default size of the crumb
 	chuck := 1024 * 1024 * size
-	//var content strings.Builder
+	info, err := os.Stat(name)
+	if err != nil {
+		panic(err)
+	}
+	count := int(info.Size()/(1024*1024))/10
+	bar := pb.StartNew(count)
 	f, err := os.Open("./" + name)
 	if err != nil {
 		fmt.Println("File Not Found!")
@@ -43,12 +49,12 @@ func Crumber(name string,size int) {
 					loc.PrevHash = prev_crum.Hash
 				}
 				h := sha256.New()
-				h.Write([]byte(buf[0:n]))
+				loc.Content = base64.StdEncoding.EncodeToString([]byte(buf[0:n]))
+				h.Write([]byte(loc.Content))
 				h.Write([]byte(loc.PrevHash))
 				loc.Index = int64(i)
 				loc.Name = name
 				loc.Hash = h.Sum(nil)
-				loc.Content = base64.StdEncoding.EncodeToString([]byte(buf[0:n]))
 				data := &Crumb{Index:loc.Index, Name:loc.Name, Hash:loc.Hash, PrevHash:loc.PrevHash, Content:loc.Content}
 				b,err := proto.Marshal(data)
 				if err != nil {
@@ -56,5 +62,7 @@ func Crumber(name string,size int) {
 				}
 				err = ioutil.WriteFile(name+"-crumb/"+name+strconv.Itoa(i)+".cbc", b, 0644)
 				prev_crum = *data
+				bar.Increment()
   }
+	bar.Finish()
 }
