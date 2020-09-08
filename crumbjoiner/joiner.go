@@ -7,56 +7,71 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"github.com/cheggaaa/pb/v3"
 	"sort"
+	"time"
+	"sync"
+
 	proto "github.com/golang/protobuf/proto"
 )
 
 func Joiner(dirname string) {
-	var fullfile strings.Builder
+	var wg sync.WaitGroup
 	filename := ""
 	files, err := FilePathWalkDir(dirname)
 	if err != nil {
 		return
 	}
 	crumbs := []Crumb{}
+	var mutex = &sync.Mutex{}
 	fmt.Println("Reading the Crumbs...")
 	count := len(files)
 	bar := pb.StartNew(count)
 	for _, doc := range files {
-		content, err := ioutil.ReadFile(doc)
-		if err != nil {
-			log.Fatal(err)
-		}
-		c := &Crumb{}
-		err = proto.Unmarshal(content,c)
-		if err != nil {
-			log.Fatal(err)
-		}
-		crumbs = append(crumbs, *c)
-		bar.Increment()
+		wg.Add(1)
+		go func(doc string) {
+			defer wg.Done()
+			content, err := ioutil.ReadFile(doc)
+			if err != nil {
+				log.Fatal(err)
+			}
+			c := &Crumb{}
+			err = proto.Unmarshal(content,c)
+			if err != nil {
+				log.Fatal(err)
+			}
+			mutex.Lock()
+			crumbs = append(crumbs, *c)
+			mutex.Unlock()
+			bar.Increment()
+		}(doc)
+		time.Sleep(10*time.Millisecond)
 	}
+	wg.Wait()
 	bar.Finish()
-	fmt.Println("Joining the files")
+	fmt.Println(len(crumbs))
+	fmt.Println("Joining and Writing the files")
 	count = len(files)
 	bar = pb.StartNew(count)
 	filename = crumbs[0].Name
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+    panic(err)
+	}
+	defer f.Close()
 	sort.Slice(crumbs,func(i, j int) bool { return crumbs[i].Index < crumbs[j].Index })
 	for _,crumb := range crumbs {
-		fullfile.WriteString(crumb.Content)
+		//fmt.Println(crumb.Content)
+		tmp,err := base64.StdEncoding.DecodeString(string(crumb.Content))
+		if err != nil {
+			panic(err)
+		}
+		if _, err = f.WriteString(string(tmp)); err != nil {
+	    panic(err)
+	  }
 		bar.Increment()
 	}
 	bar.Finish()
-	fmt.Println("Decoding from base64.....")
-	// Converting from base64 to normal
-	data, err := base64.StdEncoding.DecodeString(fullfile.String())
-	if err != nil {
-		fmt.Println("error:", err)
-		return
-	}
-	// Writing to the output file
-	err = ioutil.WriteFile(filename, []byte(data), 0644)
 }
 
 func FilePathWalkDir(root string) ([]string, error) {
