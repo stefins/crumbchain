@@ -22,7 +22,7 @@ func Crumber(name string,size int) {
 	if err != nil {
 		panic(err)
 	}
-	count := int(info.Size()/(1024*1024))/10
+	count := int(info.Size()/(1024*1024))/size
 	bar := pb.StartNew(count)
 	f, err := os.Open("./" + name)
 	if err != nil {
