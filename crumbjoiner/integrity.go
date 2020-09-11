@@ -51,6 +51,7 @@ func Integrity(dirname string) {
 	bar = pb.StartNew(len(crumbs))
 	for i,crumb := range crumbs {
 		if i==0{
+			bar.Increment()
 
 		}else{
       wg.Add(1)
