@@ -3,14 +3,14 @@ package crumbjoiner
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/cheggaaa/pb/v3"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"github.com/cheggaaa/pb/v3"
 	"sort"
-	"time"
 	"sync"
+	"time"
 
 	proto "github.com/golang/protobuf/proto"
 )
@@ -20,7 +20,7 @@ func Joiner(dirname string) {
 	filename := ""
 	files, err := FilePathWalkDir(dirname)
 	if err != nil {
-		fmt.Println("Some error : ",err.Error())
+		fmt.Println("Some error : ", err.Error())
 		return
 	}
 	crumbs := []Crumb{}
@@ -37,7 +37,7 @@ func Joiner(dirname string) {
 				log.Fatal(err)
 			}
 			c := &Crumb{}
-			err = proto.Unmarshal(content,c)
+			err = proto.Unmarshal(content, c)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -46,7 +46,7 @@ func Joiner(dirname string) {
 			mutex.Unlock()
 			bar.Increment()
 		}(doc)
-		time.Sleep(10*time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
 	wg.Wait()
 	bar.Finish()
@@ -57,19 +57,19 @@ func Joiner(dirname string) {
 	filename = crumbs[0].Name
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-    panic(err)
+		panic(err)
 	}
 	defer f.Close()
-	sort.Slice(crumbs,func(i, j int) bool { return crumbs[i].Index < crumbs[j].Index })
-	for _,crumb := range crumbs {
+	sort.Slice(crumbs, func(i, j int) bool { return crumbs[i].Index < crumbs[j].Index })
+	for _, crumb := range crumbs {
 		//fmt.Println(crumb.Content)
-		tmp,err := base64.StdEncoding.DecodeString(string(crumb.Content))
+		tmp, err := base64.StdEncoding.DecodeString(string(crumb.Content))
 		if err != nil {
 			panic(err)
 		}
 		if _, err = f.WriteString(string(tmp)); err != nil {
-	    panic(err)
-	  }
+			panic(err)
+		}
 		bar.Increment()
 		crumb = Crumb{}
 	}
